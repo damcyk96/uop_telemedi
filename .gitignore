@@ -7,4 +7,5 @@ test-results
 vite.config.js
 vite.config.d.ts
 tsconfig.node.tsbuildinfo
+tsconfig.app.tsbuildinfo
 .DS_Store
