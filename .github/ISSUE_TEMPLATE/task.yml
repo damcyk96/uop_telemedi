@@ -1,0 +1,42 @@
+name: Task
+description: A feature, bug fix, or improvement
+title: ""
+labels: []
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What problem are we solving and why does it matter?
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is included and what is explicitly out of scope?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What must be true for this task to be considered complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: How should the implementation be verified?
+      placeholder: |
+        - npm run build
+        - manual testing
+    validations:
+      required: true
