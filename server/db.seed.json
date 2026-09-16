@@ -1,0 +1,41 @@
+{
+  "company": {
+    "id": "company-1",
+    "name": "Przykładowa Firma Sp. z o.o.",
+    "nip": "5250000000",
+    "address": { "street": "ul. Prosta 20", "postalCode": "00-850", "city": "Warszawa" }
+  },
+  "employees": [
+    { "id": "e1", "firstName": "Marta", "lastName": "Kowalska", "hasPesel": true, "pesel": "02270803628", "address": { "street": "ul. Kwiatowa 12/4", "postalCode": "00-001", "city": "Warszawa" }, "phone": "+48 501 234 567", "email": "marta.kowalska@example.com", "position": "Specjalistka ds. administracji" },
+    { "id": "e2", "firstName": "Tomasz", "lastName": "Nowicki", "hasPesel": true, "pesel": "85011312345", "address": { "street": "ul. Długa 8", "postalCode": "30-001", "city": "Kraków" }, "phone": "502 111 222", "email": "tomasz.nowicki@example.com", "position": "Przedstawiciel handlowy" },
+    { "id": "e3", "firstName": "Oksana", "lastName": "Petrenko", "hasPesel": false, "documentType": "passport", "documentNumber": "EP123456", "birthDate": "1992-06-14", "address": { "street": "ul. Polna 3", "postalCode": "50-001", "city": "Wrocław" }, "phone": "503 222 333", "email": "oksana.petrenko@example.com", "position": "Operatorka produkcji" },
+    { "id": "e4", "firstName": "Piotr", "lastName": "Wójcik", "hasPesel": true, "pesel": "90010112349", "address": { "street": "ul. Leśna 19", "postalCode": "80-001", "city": "Gdańsk" }, "phone": "504 333 444", "email": "piotr.wojcik@example.com", "position": "Magazynier" },
+    { "id": "e5", "firstName": "Anna", "lastName": "Zielińska", "hasPesel": true, "pesel": "96080512348", "address": { "street": "ul. Lipowa 2", "postalCode": "60-001", "city": "Poznań" }, "phone": "505 444 555", "email": "anna.zielinska@example.com", "position": "Księgowa" },
+    { "id": "e6", "firstName": "Michał", "lastName": "Lewandowski", "hasPesel": true, "pesel": "88121212341", "address": { "street": "ul. Cicha 7", "postalCode": "90-001", "city": "Łódź" }, "phone": "506 555 666", "email": "michal.lewandowski@example.com", "position": "Kierownik zmiany" }
+  ],
+  "factors": [
+    { "id": "f1", "category": "PHYSICAL", "name": "Hałas", "source": "SYSTEM" },
+    { "id": "f2", "category": "PHYSICAL", "name": "Mikroklimat gorący (wysoka temperatura)", "source": "SYSTEM" },
+    { "id": "f3", "category": "PHYSICAL", "name": "Drgania ogólne", "source": "SYSTEM" },
+    { "id": "f4", "category": "CHEMICAL", "name": "Benzen", "source": "SYSTEM" },
+    { "id": "f5", "category": "CHEMICAL", "name": "Formaldehyd", "source": "SYSTEM" },
+    { "id": "f6", "category": "CHEMICAL", "name": "Mieszaniny rozpuszczalników organicznych", "source": "SYSTEM" },
+    { "id": "f7", "category": "OTHER", "name": "Obsługa monitora ekranowego", "source": "SYSTEM" },
+    { "id": "f8", "category": "OTHER", "name": "Prowadzenie pojazdu kat. B w ramach obowiązków służbowych", "source": "SYSTEM" },
+    { "id": "f9", "category": "OTHER", "name": "Praca na wysokości", "source": "SYSTEM" }
+  ],
+  "templates": [
+    { "id": "t1", "name": "Prace biurowe", "factorIds": ["f7"] },
+    { "id": "t2", "name": "Przedstawiciel handlowy", "factorIds": ["f7", "f8"] },
+    { "id": "t3", "name": "Pracownik produkcji", "factorIds": ["f1", "f2", "f3", "f6"] }
+  ],
+  "users": [
+    { "id": "u1", "firstName": "Katarzyna", "lastName": "Zielińska", "role": "COORDINATOR", "login": "katarzyna.zielinska", "password": "Haslo123!", "createdAt": "2025-01-08T09:00:00.000Z" }
+  ],
+  "referrals": [
+    { "id": "r1", "number": "SK/2026/09/0006", "examType": "PERIODIC", "employee": { "id": "e1", "firstName": "Marta", "lastName": "Kowalska", "hasPesel": true, "pesel": "02270803628", "address": { "street": "ul. Kwiatowa 12/4", "postalCode": "00-001", "city": "Warszawa" }, "phone": "+48 501 234 567", "email": "marta.kowalska@example.com", "position": "Specjalistka ds. administracji" }, "position": "Specjalistka ds. administracji", "workConditions": "Praca przy monitorze ekranowym powyżej 4 godzin dziennie.", "factors": [{ "id": "f7", "category": "OTHER", "name": "Obsługa monitora ekranowego", "source": "SYSTEM" }], "resultDeadline": "2026-09-28", "preferredCity": "Warszawa", "notes": "Preferowane godziny poranne.", "status": "ISSUED", "createdAt": "2026-09-16T08:20:00.000Z" },
+    { "id": "r2", "number": "SK/2026/09/0005", "examType": "INITIAL", "employee": { "id": "e4", "firstName": "Piotr", "lastName": "Wójcik", "hasPesel": true, "pesel": "90010112349", "address": { "street": "ul. Leśna 19", "postalCode": "80-001", "city": "Gdańsk" }, "phone": "504 333 444", "email": "piotr.wojcik@example.com", "position": "Magazynier" }, "position": "Magazynier", "workConditions": "Praca zmianowa w magazynie.", "factors": [{ "id": "f3", "category": "PHYSICAL", "name": "Drgania ogólne", "source": "SYSTEM" }, { "id": "f9", "category": "OTHER", "name": "Praca na wysokości", "source": "SYSTEM" }], "resultDeadline": "2026-09-24", "preferredCity": "Gdańsk", "status": "IN_PROGRESS", "createdAt": "2026-09-14T10:10:00.000Z" },
+    { "id": "r3", "number": "SK/2026/09/0004", "examType": "CONTROL", "employee": { "id": "e2", "firstName": "Tomasz", "lastName": "Nowicki", "hasPesel": true, "pesel": "85011312345", "address": { "street": "ul. Długa 8", "postalCode": "30-001", "city": "Kraków" }, "phone": "502 111 222", "email": "tomasz.nowicki@example.com", "position": "Przedstawiciel handlowy" }, "position": "Przedstawiciel handlowy", "factors": [{ "id": "f7", "category": "OTHER", "name": "Obsługa monitora ekranowego", "source": "SYSTEM" }, { "id": "f8", "category": "OTHER", "name": "Prowadzenie pojazdu kat. B w ramach obowiązków służbowych", "source": "SYSTEM" }], "resultDeadline": "2026-09-20", "preferredCity": "Kraków", "status": "SCHEDULED", "createdAt": "2026-09-11T12:00:00.000Z" },
+    { "id": "r4", "number": "SK/2026/09/0003", "examType": "PERIODIC", "employee": { "id": "e3", "firstName": "Oksana", "lastName": "Petrenko", "hasPesel": false, "documentType": "passport", "documentNumber": "EP123456", "birthDate": "1992-06-14", "address": { "street": "ul. Polna 3", "postalCode": "50-001", "city": "Wrocław" }, "phone": "503 222 333", "email": "oksana.petrenko@example.com", "position": "Operatorka produkcji" }, "position": "Operatorka produkcji", "factors": [{ "id": "f1", "category": "PHYSICAL", "name": "Hałas", "source": "SYSTEM" }, { "id": "f2", "category": "PHYSICAL", "name": "Mikroklimat gorący (wysoka temperatura)", "source": "SYSTEM" }], "resultDeadline": "2026-09-12", "preferredCity": "Wrocław", "status": "COMPLETED", "createdAt": "2026-09-04T08:00:00.000Z" }
+  ]
+}
