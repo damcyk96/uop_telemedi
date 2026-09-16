@@ -60,6 +60,29 @@ describe("termin dostarczenia orzeczenia", () => {
   it("nie uznaje roku pięciocyfrowego za datę przeszłą", () => {
     expect(isReferralDeadlineInPast("10000-01-01", today)).toBe(false);
   });
+
+  it("nie uznaje maksymalnej daty pola typu date za datę przeszłą", () => {
+    expect(isReferralDeadlineInPast("275760-09-13", today)).toBe(false);
+  });
+
+  it("odrzuca termin z bardzo odległej przeszłości", () => {
+    expect(isReferralDeadlineInPast("0001-01-01", today)).toBe(true);
+  });
+
+  it("nie traktuje niepoprawnego formatu jako terminu z przeszłości", () => {
+    expect(isReferralDeadlineInPast("nie-data", today)).toBe(false);
+    expect(isReferralDeadlineInPast("16.09.2026", today)).toBe(false);
+    expect(isReferralDeadlineInPast("2026-9-1", today)).toBe(false);
+  });
+
+  it("nie myli składowych miesiąca i dnia przy przejściu między miesiącami", () => {
+    const firstOfOctober = new Date(2026, 9, 1, 8, 0, 0);
+    expect(isReferralDeadlineInPast("2026-09-30", firstOfOctober)).toBe(true);
+    expect(isReferralDeadlineInPast("2026-10-01", firstOfOctober)).toBe(false);
+    expect(isReferralDeadlineInPast("2026-10-31", new Date(2026, 9, 2, 8, 0, 0))).toBe(
+      false,
+    );
+  });
 });
 
 describe("lokalna data ISO", () => {

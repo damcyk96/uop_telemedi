@@ -184,3 +184,81 @@ test(
     expect(crashes).toEqual([]);
   },
 );
+
+test("podsumowanie pokazuje wartość zastępczą dla terminu, którego nie da się sformatować", async ({
+  page,
+}) => {
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const summaryDeadline = page
+    .locator(".summary-row")
+    .filter({ hasText: "Termin" });
+
+  await expect(summaryDeadline).toContainText("Nie ustawiono");
+
+  await page.getByLabel("Termin dostarczenia orzeczenia").fill("10000-01-01");
+  await expect(summaryDeadline).toContainText("—");
+});
+
+test("pole terminu zgłasza przekroczenie dolnej granicy dla daty wcześniejszej niż dzisiaj", async ({
+  page,
+}) => {
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+  const rangeUnderflow = () =>
+    deadline.evaluate(
+      (element) => (element as HTMLInputElement).validity.rangeUnderflow,
+    );
+
+  await deadline.fill(localDate(-1));
+  // Ta sama reguła, której używa kalendarz przeglądarki do wyszarzenia dat przed `min`.
+  expect(await rangeUnderflow()).toBe(true);
+
+  await deadline.fill(localDate());
+  expect(await rangeUnderflow()).toBe(false);
+
+  await deadline.fill(localDate(1));
+  expect(await rangeUnderflow()).toBe(false);
+});
+
+test("pusty termin nie pokazuje komunikatu o dacie przeszłej i nie wysyła skierowania", async ({
+  page,
+}) => {
+  const payloads = trackReferralRequests(page);
+
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+  await expect(deadline).toHaveValue("");
+
+  await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+
+  await expect(page).toHaveURL(/\/skierowania\/nowe\?employeeId=e1$/);
+  await expect(deadline).toHaveAttribute("aria-invalid", "false");
+  await expect(page.getByRole("status")).toHaveCount(0);
+  expect(payloads).toHaveLength(0);
+});
+
+// `min` i flaga błędu są wyliczane przy renderze, więc formularz otwarty przez
+// zmianę doby musi odrzucić termin, który w międzyczasie stał się datą przeszłą.
+test(
+  "termin, który stał się przeszły po zmianie doby, nie zostaje wysłany",
+  async ({ page }) => {
+    const payloads = trackReferralRequests(page);
+    const beforeMidnight = new Date();
+    beforeMidnight.setHours(23, 45, 0, 0);
+
+    await page.clock.install({ time: beforeMidnight });
+    await page.goto("/skierowania/nowe?employeeId=e1");
+
+    const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+    await deadline.fill(localDate());
+    await expect(deadline).toHaveAttribute("aria-invalid", "false");
+
+    await page.clock.fastForward("00:30:00");
+    await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+
+    await expect(page.getByRole("status")).toHaveText(
+      "Termin dostarczenia orzeczenia nie może być datą przeszłą",
+    );
+    expect(payloads).toHaveLength(0);
+  },
+);
