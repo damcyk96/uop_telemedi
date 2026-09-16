@@ -55,9 +55,9 @@ describe("termin dostarczenia orzeczenia", () => {
     expect(isReferralDeadlineInPast("2026-09-17")).toBe(false);
   });
 
-  // BUG: porównanie leksykograficzne ciągów znaków daje zły wynik dla dat
-  // z rokiem pięciocyfrowym, które input[type=date] dopuszcza (do 275760).
-  it.fails("nie uznaje roku pięciocyfrowego za datę przeszłą", () => {
+  // Regresja: input[type=date] dopuszcza rok pięciocyfrowy (do 275760),
+  // dla którego porównanie dat jako tekstu dawało zły wynik.
+  it("nie uznaje roku pięciocyfrowego za datę przeszłą", () => {
     expect(isReferralDeadlineInPast("10000-01-01", today)).toBe(false);
   });
 });

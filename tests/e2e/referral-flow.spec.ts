@@ -167,11 +167,9 @@ test("po poprawieniu przeszłego terminu błąd znika i skierowanie zostaje wyst
   expect(payloads[0].resultDeadline).toBe(future);
 });
 
-// BUG (istniejący przed tym PR): input[type=date] w Chrome dopuszcza rok
-// pięciocyfrowy, a datePL() (src/lib/utils.ts:2) wywołuje Intl.DateTimeFormat
-// na Invalid Date w podsumowaniu terminu (src/App.tsx:60). RangeError wywraca
-// całe drzewo React — użytkownik widzi pustą stronę i traci wypełniony formularz.
-test.fail(
+// Regresja: input[type=date] w Chrome dopuszcza rok pięciocyfrowy, a formatowanie
+// takiej daty w podsumowaniu terminu wywracało całą stronę (RangeError).
+test(
   "pięciocyfrowy rok w terminie nie powinien wywracać formularza",
   async ({ page }) => {
     const crashes: string[] = [];

@@ -5,9 +5,17 @@ export function localDateIso(now = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+// Compares numerically: string comparison breaks for years with more than 4 digits.
+function dayNumber(isoDate: string): number {
+  const match = /^(\d+)-(\d{2})-(\d{2})$/.exec(isoDate);
+  if (!match) return Number.NaN;
+  const [, year, month, day] = match;
+  return Number(year) * 10000 + Number(month) * 100 + Number(day);
+}
+
 export function isReferralDeadlineInPast(
   deadline: string,
   now = new Date(),
 ): boolean {
-  return Boolean(deadline) && deadline < localDateIso(now);
+  return dayNumber(deadline) < dayNumber(localDateIso(now));
 }
