@@ -1,7 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { isReferralDeadlineInPast, localDateIso } from "./referralDeadline";
 
 const today = new Date(2026, 8, 16, 12, 0, 0);
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("termin dostarczenia orzeczenia", () => {
   it("odrzuca datę wcześniejszą niż dzisiaj", () => {
@@ -18,5 +22,62 @@ describe("termin dostarczenia orzeczenia", () => {
 
   it("wyznacza dzisiejszą datę w lokalnej strefie czasowej", () => {
     expect(localDateIso(today)).toBe("2026-09-16");
+  });
+
+  it("nie traktuje pustego pola jako terminu z przeszłości", () => {
+    expect(isReferralDeadlineInPast("", today)).toBe(false);
+  });
+
+  it("odrzuca ostatni dzień poprzedniego roku", () => {
+    expect(
+      isReferralDeadlineInPast("2025-12-31", new Date(2026, 0, 1, 8, 0, 0)),
+    ).toBe(true);
+  });
+
+  it("pozwala wybrać pierwszy dzień kolejnego roku", () => {
+    expect(
+      isReferralDeadlineInPast("2027-01-01", new Date(2026, 11, 31, 8, 0, 0)),
+    ).toBe(false);
+  });
+
+  it("odrzuca datę przeszłą jeszcze tuż przed północą", () => {
+    expect(
+      isReferralDeadlineInPast("2026-09-15", new Date(2026, 8, 16, 23, 59, 59)),
+    ).toBe(true);
+  });
+
+  it("porównuje z bieżącą datą systemową, gdy nie podano punktu odniesienia", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 16, 23, 59, 59));
+
+    expect(isReferralDeadlineInPast("2026-09-15")).toBe(true);
+    expect(isReferralDeadlineInPast("2026-09-16")).toBe(false);
+    expect(isReferralDeadlineInPast("2026-09-17")).toBe(false);
+  });
+
+  // BUG: porównanie leksykograficzne ciągów znaków daje zły wynik dla dat
+  // z rokiem pięciocyfrowym, które input[type=date] dopuszcza (do 275760).
+  it.fails("nie uznaje roku pięciocyfrowego za datę przeszłą", () => {
+    expect(isReferralDeadlineInPast("10000-01-01", today)).toBe(false);
+  });
+});
+
+describe("lokalna data ISO", () => {
+  it("uzupełnia zerami jednocyfrowy miesiąc i dzień", () => {
+    expect(localDateIso(new Date(2026, 0, 5, 12, 0, 0))).toBe("2026-01-05");
+  });
+
+  it("używa daty lokalnej, a nie UTC, na początku i na końcu doby", () => {
+    // W dowolnej strefie z przesunięciem != 0 co najmniej jedna z tych chwil
+    // wypada w UTC w innym dniu kalendarzowym, więc toISOString() by tu poległ.
+    expect(localDateIso(new Date(2026, 5, 10, 0, 30, 0))).toBe("2026-06-10");
+    expect(localDateIso(new Date(2026, 5, 10, 23, 30, 0))).toBe("2026-06-10");
+  });
+
+  it("domyślnie zwraca dzisiejszą datę lokalną", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 16, 0, 15, 0));
+
+    expect(localDateIso()).toBe("2026-09-16");
   });
 });
