@@ -1,0 +1,110 @@
+name: Bug report
+description: Report behavior that is broken or different from what is expected
+title: "[Bug]: "
+labels: []
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken and how does it affect the user?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Where in the product does the problem occur and who encounters it?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest reliable sequence that demonstrates the problem.
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: What happens now?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What should happen instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      options:
+        - Always
+        - Often
+        - Sometimes
+        - Once
+        - Unknown
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact
+      description: Which parts of the project appear to be affected?
+      options:
+        - label: User interface
+        - label: Mock API or data
+        - label: PDF generation
+        - label: XLSX import or export
+        - label: Tests or developer tooling
+        - label: Documentation
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Add screenshots, recordings, console errors, or relevant data with sensitive information removed.
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: What must be true for the fix to be considered complete?
+      placeholder: |
+        - [ ] The reported scenario works as expected
+        - [ ] A regression test covers the failure
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: How should the fix be verified?
+      placeholder: |
+        - npm run test
+        - npm run build
+        - Manual regression scenario
+    validations:
+      required: true
+
+  - type: input
+    id: contact
+    attributes:
+      label: Contact person
+      description: Who should be contacted if more context is needed?
+

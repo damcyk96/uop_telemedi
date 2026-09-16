@@ -1,0 +1,111 @@
+name: Feature or improvement
+description: Propose a new capability or an improvement to existing behavior
+title: "[Feature]: "
+labels: []
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What problem are we solving and why does it matter?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Where does this appear in the product and who needs it?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: Describe the expected behavior or a high-level idea for the change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is included and what is explicitly out of scope?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact
+      description: Which parts of the project may be affected?
+      options:
+        - label: User interface
+        - label: Mock API or data
+        - label: PDF generation
+        - label: XLSX import or export
+        - label: Tests or developer tooling
+        - label: Documentation
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: What must be true for this issue to be considered complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: How should the implementation be verified?
+      placeholder: |
+        - npm run test
+        - npm run build
+        - Manual scenario to verify
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation notes
+      description: Optional technical hints, constraints, or preferred patterns.
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Optional links, prototypes, videos, or screenshots.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgent is this change?
+      options:
+        - ASAP — it affects daily work
+        - Needed before a specific date
+        - Nice to have
+        - Just an idea
+    validations:
+      required: true
+
+  - type: input
+    id: deadline
+    attributes:
+      label: Deadline
+      description: If applicable, provide the date and explain why it matters.
+      placeholder: YYYY-MM-DD — reason
+
+  - type: input
+    id: contact
+    attributes:
+      label: Contact person
+      description: Who should be contacted if more context is needed?
+
