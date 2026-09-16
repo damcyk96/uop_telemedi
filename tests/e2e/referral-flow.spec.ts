@@ -47,3 +47,26 @@ test("pracownik HR może dodać pracownika i wystawić mu skierowanie", async ({
     /^blob:/,
   );
 });
+
+test("nie można wystawić skierowania z terminem dostarczenia orzeczenia w przeszłości", async ({
+  page,
+}) => {
+  let referralRequests = 0;
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().endsWith("/referrals")) {
+      referralRequests += 1;
+    }
+  });
+
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+  await deadline.fill("2000-01-01");
+  await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+
+  await expect(page).toHaveURL(/\/skierowania\/nowe\?employeeId=e1$/);
+  await expect(page.getByRole("status")).toHaveText(
+    "Termin dostarczenia orzeczenia nie może być datą przeszłą",
+  );
+  await expect(deadline).toHaveAttribute("aria-invalid", "true");
+  expect(referralRequests).toBe(0);
+});
