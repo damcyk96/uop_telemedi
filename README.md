@@ -4,6 +4,29 @@ Demo panelu pracodawcy do obsługi badań medycyny pracy. Aplikacja pozwala zarz
 
 Projekt jest lokalnym demonstratorem — nie zawiera logowania ani prawdziwej integracji z call center i siecią medyczną. Dane są przechowywane przez `json-server` w pliku JSON.
 
+## Podgląd aplikacji
+
+### Skierowania
+
+![Lista skierowań](docs/screenshots/skierowania.png)
+
+<details>
+<summary>Zobacz pozostałe ekrany</summary>
+
+### Wystawianie skierowania
+
+![Formularz wystawiania skierowania](docs/screenshots/nowe-skierowanie.png)
+
+### Pracownicy
+
+![Lista pracowników](docs/screenshots/pracownicy.png)
+
+### Szablony
+
+![Szablony skierowań](docs/screenshots/szablony.png)
+
+</details>
+
 ## Funkcje
 
 - lista skierowań z przykładowymi statusami,
