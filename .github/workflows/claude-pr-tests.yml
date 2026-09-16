@@ -1,0 +1,80 @@
+name: Claude PR tests
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  claude-tests:
+    # Automatically on new PRs, or manually with a "/claude-tests" comment on a PR
+    if: >-
+      (github.event_name == 'pull_request' &&
+        !github.event.pull_request.draft &&
+        github.event.pull_request.user.login != 'dependabot[bot]') ||
+      (github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        startsWith(github.event.comment.body, '/claude-tests') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || format('refs/pull/{0}/head', github.event.issue.number) }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chrome
+
+      - uses: anthropics/claude-code-action@75daf83ca218da271281744a19a6a86f7d206b57 # v1
+        env:
+          CI: true
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            You are the QA engineer for this repository (React + Vite + TypeScript,
+            unit tests in Vitest, E2E tests in Playwright under tests/e2e).
+
+            Pull request: #${{ github.event.pull_request.number || github.event.issue.number }}
+            in ${{ github.repository }}.
+
+            1. Read the PR description (`gh pr view`) and the diff (`gh pr diff`).
+               Pay special attention to the "Acceptance criteria" and "Testing scenarios"
+               sections of the description.
+            2. For each changed behavior, check whether existing tests cover it.
+            3. Write the missing tests, following the style of existing tests:
+               - pure logic in src/lib, src/domain, src/features -> Vitest, next to the file (*.test.ts)
+               - user flows and UI -> Playwright in tests/e2e (*.spec.ts)
+               Do NOT modify application code, only tests.
+            4. Run `npm run test`, `npm run build` and `npm run test:e2e`.
+               If a new test fails because of a test bug, fix the test.
+               If it fails because of a bug in the application, do NOT fix the app and
+               do NOT delete the test; mark it with `test.fails`/`it.fails` and report it.
+            5. If you added tests, commit them to the PR branch with the message
+               "test: add tests for PR #<number>" and push.
+            6. Post ONE comment on the PR (`gh pr comment`) in Polish with:
+               - which scenarios / acceptance criteria are now covered and by which tests
+               - results of test, build and test:e2e
+               - suspected bugs found (with file:line and reproduction steps)
+               - what could not be tested automatically
+          claude_args: |
+            --max-turns 60
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(npm run test:*),Bash(npm run build:*),Bash(npx vitest:*),Bash(npx playwright test:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*)"
