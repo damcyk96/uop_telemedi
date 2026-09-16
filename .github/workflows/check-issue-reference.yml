@@ -1,0 +1,98 @@
+name: Check issue reference in PR
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-issue-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number;
+
+            if (!prNumber) {
+              console.log("No PR context");
+              return;
+            }
+
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const missingIssueLabel = 'missing issue';
+            const dependencyLabel = 'dependencies';
+            const labelNames = (pr.data.labels || []).map((label) => label.name);
+            const isDependencyPr = labelNames.includes(dependencyLabel);
+            const isDependabotPr = pr.data.user?.login === 'dependabot[bot]';
+
+            const removeMissingIssueLabel = async ({ failOnError }) => {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  name: missingIssueLabel
+                });
+                console.log('Removed "missing issue" label');
+              } catch (error) {
+                if (error.status === 404) {
+                  console.log('"missing issue" label not present');
+                  return;
+                }
+
+                if (failOnError) {
+                  throw error;
+                }
+
+                core.warning(`Could not remove "${missingIssueLabel}" label: ${error.message}`);
+              }
+            };
+
+            if (isDependencyPr || isDependabotPr) {
+              if (labelNames.includes(missingIssueLabel)) {
+                await removeMissingIssueLabel({ failOnError: false });
+              }
+
+              console.log("Skipping issue reference check for dependency or Dependabot PR");
+              return;
+            }
+
+            const text = pr.data.body || "";
+            const issueReferenceRegex =
+              /(^|\s)(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#\d+/im;
+
+            const hasIssueReference = issueReferenceRegex.test(text);
+
+            if (!hasIssueReference) {
+              if (!labelNames.includes(missingIssueLabel)) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  labels: [missingIssueLabel]
+                });
+              }
+
+              core.setFailed(
+                'PR description must include a closing issue reference such as "Closes #123", "Fixes #123", or "Resolves #123".'
+              );
+              return;
+            }
+
+            await removeMissingIssueLabel({ failOnError: true });
+
+            console.log("Issue closing reference detected in PR description");
