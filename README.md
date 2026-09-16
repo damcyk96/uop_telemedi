@@ -81,13 +81,36 @@ Vite przekazuje zapytania z `/api` do lokalnego `json-server`.
 
 ## Dostępne skrypty
 
-| Polecenie | Działanie |
-|---|---|
-| `npm run dev` | Uruchamia aplikację i mock API |
-| `npm run api` | Uruchamia wyłącznie `json-server` |
-| `npm run db:reset` | Przywraca początkowe dane demonstracyjne |
-| `npm run build` | Sprawdza TypeScript i tworzy build produkcyjny |
-| `npm run preview` | Uruchamia lokalny podgląd gotowego buildu |
+| Polecenie             | Działanie                                       |
+| --------------------- | ----------------------------------------------- |
+| `npm run dev`         | Uruchamia aplikację i mock API                  |
+| `npm run api`         | Uruchamia wyłącznie `json-server`               |
+| `npm run db:reset`    | Przywraca początkowe dane demonstracyjne        |
+| `npm run build`       | Sprawdza TypeScript i tworzy build produkcyjny  |
+| `npm run preview`     | Uruchamia lokalny podgląd gotowego buildu       |
+| `npm run test`        | Uruchamia testy funkcji i importu XLSX w Vitest |
+| `npm run test:e2e`    | Uruchamia scenariusze użytkownika w Playwright  |
+| `npm run test:e2e:ui` | Otwiera interaktywny interfejs Playwright       |
+| `npm run test:all`    | Uruchamia wszystkie testy jednostkowe i E2E     |
+
+## Testy
+
+Testy Vitest obejmują:
+
+- generowanie i rozwiązywanie kolizji loginów,
+- numerację skierowań,
+- pomijanie przykładowego wiersza XLSX,
+- raportowanie niepełnych wierszy importu.
+
+Testy Playwright obejmują:
+
+- dostępność wszystkich głównych modułów z nawigacji,
+- pełny przepływ dodania pracownika,
+- przejście z pracownika do nowego skierowania,
+- zastosowanie szablonu i wystawienie skierowania,
+- potwierdzenie zapisu, obecność skierowania na liście i utworzenie podglądu PDF.
+
+E2E korzysta z osobnej bazy `server/db.test.json`. Jest ona tworzona z seedu przed testami i usuwana po ich zakończeniu, więc dane lokalnego demo pozostają nienaruszone.
 
 ## Import pracowników z XLSX
 
