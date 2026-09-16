@@ -77,5 +77,5 @@ jobs:
                - suspected bugs found (with file:line and reproduction steps)
                - what could not be tested automatically
           claude_args: |
-            --max-turns 60
-            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(npm run test:*),Bash(npm run build:*),Bash(npx vitest:*),Bash(npx playwright test:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*)"
+            --max-turns 100
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(gh pr view:*),Bash(gh issue view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(npm run test:*),Bash(npm run build:*),Bash(npx vitest:*),Bash(npx playwright test:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*)"
