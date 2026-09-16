@@ -1,4 +1,11 @@
 node_modules
 dist
 server/db.json
+server/db.test.json
+playwright-report
+test-results
+vite.config.js
+vite.config.d.ts
+tsconfig.node.tsbuildinfo
+tsconfig.app.tsbuildinfo
 .DS_Store
