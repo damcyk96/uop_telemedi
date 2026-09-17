@@ -82,8 +82,12 @@ jobs:
               per_page: 100
             });
 
-            const text = [pr.data.body || "", ...comments, ...reviewComments]
-              .map((item) => (typeof item === 'string' ? item : item.body || ""))
+            // Bots (e.g. CodeRabbit) post comments with logos and badges that are not evidence.
+            const humanComments = [...comments, ...reviewComments].filter(
+              (comment) => comment.user?.type !== 'Bot'
+            );
+
+            const text = [pr.data.body || "", ...humanComments.map((comment) => comment.body || "")]
               .join("\n")
               // Ignore HTML comments so template hints never count as media.
               .replace(/<!--[\s\S]*?-->/g, "");
