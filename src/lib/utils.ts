@@ -3,7 +3,11 @@ export function uid() {
 }
 
 export function datePL(value: string) {
-  return new Intl.DateTimeFormat('pl-PL').format(new Date(value))
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return undefined
+  }
+  return new Intl.DateTimeFormat('pl-PL').format(date)
 }
 
 function normalizeLogin(value: string) {

@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { isReferralDeadlineInPast, localDateIso } from '@/domain/referralDeadline'
 import type { Employee, ExamType } from '@/domain/types'
 import { useGetEmployees, useGetExposureFactors, useGetReferralTemplates } from '@/core/queries'
 import { Button } from '@/ui/atoms'
+import { Toast } from '@/ui/molecules'
 import { PageHeader } from '@/ui/organisms'
 import { AppointmentSection } from '@/features/referrals/components/AppointmentSection'
 import { EmployeeSection } from '@/features/referrals/components/EmployeeSection'
@@ -13,13 +15,6 @@ import { ReferralSummary } from '@/features/referrals/components/ReferralSummary
 import { ReferralIssuanceError } from '@/features/referrals/issuance/ReferralIssuance'
 import { useReferralIssuance } from '@/features/referrals/issuance/useReferralIssuance'
 import { useTranslation, type TranslationKey } from '@/i18n'
-
-function currentDateInputValue() {
-  const today = new Date()
-  const month = String(today.getMonth() + 1).padStart(2, '0')
-  const day = String(today.getDate()).padStart(2, '0')
-  return `${today.getFullYear()}-${month}-${day}`
-}
 
 export default function NewReferralPage() {
   const { t } = useTranslation()
@@ -38,6 +33,7 @@ export default function NewReferralPage() {
   const [preferredCity, setPreferredCity] = useState('')
   const [notes, setNotes] = useState('')
   const [errorKey, setErrorKey] = useState<TranslationKey>()
+  const [deadlineToast, setDeadlineToast] = useState(false)
   const selectedEmployee = employees.data?.find(employee => employee.id === employeeId)
 
   const prefilledFromUrl = useRef(false)
@@ -63,6 +59,11 @@ export default function NewReferralPage() {
     prefillFromEmployee(selectedEmployee)
   }, [selectedEmployee])
 
+  function changeResultDeadline(value: string) {
+    setResultDeadline(value)
+    setDeadlineToast(false)
+  }
+
   function toggleFactor(id: string) {
     setFactorIds(currentIds => (
       currentIds.includes(id)
@@ -81,6 +82,11 @@ export default function NewReferralPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorKey(undefined)
+
+    if (isReferralDeadlineInPast(resultDeadline)) {
+      setDeadlineToast(true)
+      return
+    }
 
     try {
       const referral = await issueReferral.mutateAsync({
@@ -131,11 +137,13 @@ export default function NewReferralPage() {
             onWorkConditionsChange={setWorkConditions}
           />
           <AppointmentSection
-            minDate={currentDateInputValue()}
+            minDate={localDateIso()}
+            deadlineInPast={isReferralDeadlineInPast(resultDeadline)}
+            onDeadlineBeforeMin={() => setDeadlineToast(true)}
             resultDeadline={resultDeadline}
             preferredCity={preferredCity}
             notes={notes}
-            onResultDeadlineChange={setResultDeadline}
+            onResultDeadlineChange={changeResultDeadline}
             onPreferredCityChange={setPreferredCity}
             onNotesChange={setNotes}
           />
@@ -149,6 +157,13 @@ export default function NewReferralPage() {
           submitting={issueReferral.isPending}
         />
       </form>
+      {deadlineToast && (
+        <Toast
+          variant="error"
+          message={t('referrals.form.appointment.deadlineInPast')}
+          onDone={() => setDeadlineToast(false)}
+        />
+      )}
     </>
   )
 }

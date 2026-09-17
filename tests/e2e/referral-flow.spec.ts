@@ -1,5 +1,23 @@
 import { expect, test } from "@playwright/test";
 
+function localDate(offsetDays = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function trackReferralRequests(page: import("@playwright/test").Page) {
+  const payloads: Array<Record<string, unknown>> = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().endsWith("/referrals")) {
+      payloads.push(request.postDataJSON());
+    }
+  });
+  return payloads;
+}
+
 test("pracownik HR może dodać pracownika i wystawić mu skierowanie", async ({
   page,
 }) => {
@@ -45,3 +63,197 @@ test("pracownik HR może dodać pracownika i wystawić mu skierowanie", async ({
     /^blob:/,
   );
 });
+
+test("nie można wystawić skierowania z terminem dostarczenia orzeczenia w przeszłości", async ({
+  page,
+}) => {
+  let referralRequests = 0;
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().endsWith("/referrals")) {
+      referralRequests += 1;
+    }
+  });
+
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+  await deadline.fill("2000-01-01");
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/skierowania\/nowe\?employeeId=e1$/);
+  await expect(page.getByRole("status")).toHaveText(
+    "Termin dostarczenia orzeczenia nie może być datą przeszłą",
+  );
+  await expect(deadline).toHaveAttribute("aria-invalid", "true");
+  expect(referralRequests).toBe(0);
+});
+
+test("pole terminu ogranicza wybór do dzisiejszej daty i oznacza datę przeszłą bez wysyłania formularza", async ({
+  page,
+}) => {
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+
+  await expect(deadline).toHaveAttribute("min", localDate());
+  await expect(deadline).toHaveAttribute("aria-invalid", "false");
+  await expect(page.getByRole("status")).toHaveCount(0);
+
+  await deadline.fill(localDate(-1));
+  await expect(deadline).toHaveAttribute("aria-invalid", "true");
+});
+
+test("komunikat o przeszłym terminie jest wyróżniony jako błąd", async ({
+  page,
+}) => {
+  await page.goto("/skierowania/nowe?employeeId=e1");
+
+  await page.getByLabel("Termin dostarczenia orzeczenia").fill(localDate(-30));
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
+
+  const toast = page.getByRole("status");
+  await expect(toast).toHaveText(
+    "Termin dostarczenia orzeczenia nie może być datą przeszłą",
+  );
+  await expect(toast).toHaveClass(/\berror\b/);
+});
+
+test("można wystawić skierowanie z dzisiejszym terminem dostarczenia orzeczenia", async ({
+  page,
+}) => {
+  const payloads = trackReferralRequests(page);
+  const today = localDate();
+
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  await page.getByLabel("Termin dostarczenia orzeczenia").fill(today);
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/skierowania$/);
+  await expect(page.getByText("Skierowanie zostało wystawione", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Podgląd · SK\// }),
+  ).toBeVisible();
+  expect(payloads).toHaveLength(1);
+  expect(payloads[0].resultDeadline).toBe(today);
+});
+
+test("po poprawieniu przeszłego terminu błąd znika i skierowanie zostaje wystawione", async ({
+  page,
+}) => {
+  const payloads = trackReferralRequests(page);
+  const future = localDate(14);
+
+  await page.goto("/skierowania/nowe?employeeId=e2");
+  const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+  const issue = page.getByRole("button", { name: "Wystaw skierowanie", exact: true });
+
+  await deadline.fill(localDate(-1));
+  await issue.click();
+  await expect(page.getByRole("status")).toBeVisible();
+  expect(payloads).toHaveLength(0);
+
+  await deadline.fill(future);
+  await expect(deadline).toHaveAttribute("aria-invalid", "false");
+  // Toast znika po poprawieniu pola, a nie dopiero po automatycznym wygaśnięciu (3,5 s).
+  await expect(page.getByRole("status")).toHaveCount(0, { timeout: 1000 });
+
+  await issue.click();
+  await expect(page).toHaveURL(/\/skierowania$/);
+  expect(payloads).toHaveLength(1);
+  expect(payloads[0].resultDeadline).toBe(future);
+});
+
+// Regresja: input[type=date] w Chrome dopuszcza rok pięciocyfrowy, a formatowanie
+// takiej daty w podsumowaniu terminu wywracało całą stronę (RangeError).
+test(
+  "pięciocyfrowy rok w terminie nie powinien wywracać formularza",
+  async ({ page }) => {
+    const crashes: string[] = [];
+    page.on("pageerror", (error) => crashes.push(error.message));
+
+    await page.goto("/skierowania/nowe?employeeId=e1");
+    await page.getByLabel("Termin dostarczenia orzeczenia").fill("10000-01-01");
+
+    await expect(
+      page.getByRole("heading", { name: "Wystaw skierowanie", level: 1 }),
+    ).toBeVisible({ timeout: 2000 });
+    expect(crashes).toEqual([]);
+  },
+);
+
+test("podsumowanie pokazuje wartość zastępczą dla terminu, którego nie da się sformatować", async ({
+  page,
+}) => {
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const summaryDeadline = page
+    .locator(".summary-row")
+    .filter({ hasText: "Termin" });
+
+  await expect(summaryDeadline).toContainText("Nie ustawiono");
+
+  await page.getByLabel("Termin dostarczenia orzeczenia").fill("10000-01-01");
+  await expect(summaryDeadline).toContainText("—");
+});
+
+test("pole terminu zgłasza przekroczenie dolnej granicy dla daty wcześniejszej niż dzisiaj", async ({
+  page,
+}) => {
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+  function rangeUnderflow() {
+    return deadline.evaluate(
+      (element) => (element as HTMLInputElement).validity.rangeUnderflow,
+    );
+  }
+
+  await deadline.fill(localDate(-1));
+  // Ta sama reguła, której używa kalendarz przeglądarki do wyszarzenia dat przed `min`.
+  expect(await rangeUnderflow()).toBe(true);
+
+  await deadline.fill(localDate());
+  expect(await rangeUnderflow()).toBe(false);
+
+  await deadline.fill(localDate(1));
+  expect(await rangeUnderflow()).toBe(false);
+});
+
+test("pusty termin nie pokazuje komunikatu o dacie przeszłej i nie wysyła skierowania", async ({
+  page,
+}) => {
+  const payloads = trackReferralRequests(page);
+
+  await page.goto("/skierowania/nowe?employeeId=e1");
+  const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+  await expect(deadline).toHaveValue("");
+
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/skierowania\/nowe\?employeeId=e1$/);
+  await expect(deadline).toHaveAttribute("aria-invalid", "false");
+  await expect(page.getByRole("status")).toHaveCount(0);
+  expect(payloads).toHaveLength(0);
+});
+
+// `min` i flaga błędu są wyliczane przy renderze, więc formularz otwarty przez
+// zmianę doby musi odrzucić termin, który w międzyczasie stał się datą przeszłą.
+test(
+  "termin, który stał się przeszły po zmianie doby, nie zostaje wysłany",
+  async ({ page }) => {
+    const payloads = trackReferralRequests(page);
+    const beforeMidnight = new Date();
+    beforeMidnight.setHours(23, 45, 0, 0);
+
+    await page.clock.install({ time: beforeMidnight });
+    await page.goto("/skierowania/nowe?employeeId=e1");
+
+    const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
+    await deadline.fill(localDate());
+    await expect(deadline).toHaveAttribute("aria-invalid", "false");
+
+    await page.clock.fastForward("00:30:00");
+    await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
+
+    await expect(page.getByRole("status")).toHaveText(
+      "Termin dostarczenia orzeczenia nie może być datą przeszłą",
+    );
+    expect(payloads).toHaveLength(0);
+  },
+);

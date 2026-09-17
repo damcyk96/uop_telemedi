@@ -31,7 +31,7 @@ export function UsersTable({ users, loading }: UsersTableProps) {
           </Badge>
         </td>
         <td className="mono">{user.login}</td>
-        <td>{datePL(user.createdAt)}</td>
+        <td>{datePL(user.createdAt) ?? t('common.emptyValue')}</td>
       </tr>
     )
   }

@@ -181,6 +181,7 @@ export const pl = {
         title: 'Termin i miejsce',
         hint: 'Informacje dla zespołu umawiającego',
         deadline: 'Termin dostarczenia orzeczenia',
+        deadlineInPast: 'Termin dostarczenia orzeczenia nie może być datą przeszłą',
         city: 'Miejscowość badania',
         cityPlaceholder: 'np. Warszawa',
         notes: 'Uwagi dla call center',

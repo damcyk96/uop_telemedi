@@ -1,3 +1,4 @@
+import type { FormEvent } from 'react'
 import { CalendarDays } from 'lucide-react'
 import { useTranslation } from '@/i18n'
 import { TextArea, TextInput } from '@/ui/atoms'
@@ -6,6 +7,8 @@ import { FormSection } from '@/ui/organisms'
 
 export interface AppointmentSectionProps {
   minDate: string
+  deadlineInPast: boolean
+  onDeadlineBeforeMin: () => void
   resultDeadline: string
   preferredCity: string
   notes: string
@@ -16,6 +19,8 @@ export interface AppointmentSectionProps {
 
 export function AppointmentSection({
   minDate,
+  deadlineInPast,
+  onDeadlineBeforeMin,
   resultDeadline,
   preferredCity,
   notes,
@@ -25,11 +30,26 @@ export function AppointmentSection({
 }: AppointmentSectionProps) {
   const { t } = useTranslation()
 
+  function handleInvalidDeadline(event: FormEvent<HTMLInputElement>) {
+    if (event.currentTarget.validity.rangeUnderflow) {
+      event.preventDefault()
+      onDeadlineBeforeMin()
+    }
+  }
+
   return (
     <FormSection number="04" title={t('referrals.form.appointment.title')} hint={t('referrals.form.appointment.hint')}>
       <div className="deadline-highlight">
         <FormField label={t('referrals.form.appointment.deadline')}>
-          <TextInput required type="date" min={minDate} value={resultDeadline} onValueChange={onResultDeadlineChange} />
+          <TextInput
+            required
+            type="date"
+            min={minDate}
+            aria-invalid={deadlineInPast}
+            value={resultDeadline}
+            onValueChange={onResultDeadlineChange}
+            onInvalid={handleInvalidDeadline}
+          />
         </FormField>
         <CalendarDays aria-hidden="true" />
       </div>

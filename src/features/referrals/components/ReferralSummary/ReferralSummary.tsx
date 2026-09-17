@@ -25,7 +25,7 @@ export function ReferralSummary({
   const { t } = useTranslation()
   const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : t('referrals.summary.notSelected')
   const deadlineLabel = resultDeadline
-    ? datePL(`${resultDeadline}T12:00:00`)
+    ? datePL(`${resultDeadline}T12:00:00`) ?? t('common.emptyValue')
     : t('referrals.summary.notSet')
 
   return (

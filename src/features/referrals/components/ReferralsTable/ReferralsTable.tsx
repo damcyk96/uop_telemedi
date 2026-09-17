@@ -36,11 +36,11 @@ export function ReferralsTable({ referrals, loading, onPreview }: ReferralsTable
           </div>
         </td>
         <td>{t(`domain.examTypes.${referral.examType}`)}</td>
-        <td>{datePL(referral.createdAt)}</td>
+        <td>{datePL(referral.createdAt) ?? t('common.emptyValue')}</td>
         <td>
           <span className="deadline-cell">
             <CalendarDays aria-hidden="true" />
-            {datePL(`${referral.resultDeadline}T12:00:00`)}
+            {datePL(`${referral.resultDeadline}T12:00:00`) ?? t('common.emptyValue')}
           </span>
         </td>
         <td><ReferralStatus status={referral.status} /></td>

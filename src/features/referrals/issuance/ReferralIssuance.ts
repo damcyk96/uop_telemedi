@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { examTypes } from '@/domain/catalogs'
+import { isReferralDeadlineInPast } from '@/domain/referralDeadline'
 import type { Employee, ExamType, ExposureFactor, ID, Referral } from '@/domain/types'
 import type { TranslationKey } from '@/i18n/types'
 
@@ -16,7 +17,7 @@ const inputSchema = z.object({
   position: z.string().trim().min(1, messages.positionRequired),
   factorIds: z.array(z.string()),
   workConditions: z.string().trim().optional(),
-  resultDeadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, messages.deadlineInvalid),
+  resultDeadline: z.string().regex(/^\d{4,6}-\d{2}-\d{2}$/, messages.deadlineInvalid),
   preferredCity: z.string().trim().min(1, messages.cityRequired),
   notes: z.string().trim().optional(),
 })
@@ -53,10 +54,6 @@ function nextNumber(numbers: readonly string[], now: Date) {
   return `SK/${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(highest + 1).padStart(4, '0')}`
 }
 
-function localDate(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
 function clone<T>(value: T): T {
   return structuredClone(value)
 }
@@ -70,7 +67,7 @@ export function createReferralIssuance({ persistence, now = () => new Date(), ne
         throw new ReferralIssuanceError('INVALID_INPUT', 'validation.referral.incomplete', fields)
       }
       const issuedAt = now()
-      if (parsed.data.resultDeadline < localDate(issuedAt)) {
+      if (isReferralDeadlineInPast(parsed.data.resultDeadline, issuedAt)) {
         throw new ReferralIssuanceError('DEADLINE_IN_PAST', 'validation.referral.deadlineInPast', { resultDeadline: 'validation.referral.deadlineNotBeforeToday' })
       }
       const factorIds = [...new Set(parsed.data.factorIds)]
