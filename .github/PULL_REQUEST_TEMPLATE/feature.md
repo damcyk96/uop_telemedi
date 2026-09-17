@@ -32,7 +32,7 @@ Closes #<issue-number>
 
 ## Screenshots or demo
 
-<!-- Attach before/after screenshots or a short recording for user-facing changes. -->
+<!-- Required: drag & drop a video or screenshot here, or link Loom / YouTube / a media file. Without it the PR gets the "video or screenshot is missing" label. -->
 
 ## Notes
 
