@@ -1,0 +1,2 @@
+export { TelemediBrand } from './TelemediBrand'
+

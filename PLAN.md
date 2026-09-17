@@ -138,22 +138,22 @@ Wartości wyciągnięte z CSS strony telemedi.com/pl:
 
 | Token | Wartość | Użycie |
 |---|---|---|
-| `--brand-primary` | `#19301E` | Sidebar, nagłówki, przyciski główne |
-| `--brand-primary-hover` | `#1F4A3F` | Hover przycisków |
-| `--brand-accent` | `#4EC96F` | Akcenty, aktywna pozycja menu, focus |
-| `--brand-accent-strong` | `#20A869` | Linki, badge „Umówione” |
-| `--brand-accent-soft` | `#E8F5ED` | Tła zaznaczeń |
-| `--brand-pane` | `#F8F6F3` | Tło aplikacji |
+| `--brand-primary` | `#2C3E35` | Tekst, nagłówki i główne akcje |
+| `--brand-primary-hover` | `#1E2E25` | Hover i kontrastowe powierzchnie |
+| `--brand-accent` | `#2DB872` | Akcenty i aktywna pozycja menu |
+| `--brand-accent-strong` | `#087A4A` | Linki i badge „Umówione” |
+| `--brand-accent-soft` | `#E7F4EC` | Tła zaznaczeń |
+| `--brand-pane` | `#F6F5F2` | Tło aplikacji |
 | `--brand-cream` | `#F0EDE8` | Obramowania, tła kart drugorzędnych |
 | `--text` / `--text-muted` | `#3C3F3D` / `#6B6D6C` | Tekst |
 | `--warning` | `#F2BB39` | Termin blisko, „W trakcie realizacji” |
 | `--danger` | `#EA4335` | Błędy, termin przekroczony |
-| Font | **Manrope** (Google Fonts) | Aplikacja (PDF: domyślna Helvetica) |
-| Radius | 6 / 12 / 20 px | Inputy / karty / modale |
+| Font | **Plus Jakarta Sans + Manrope** (Google Fonts) | Nagłówki + treść i dane (PDF: domyślna Helvetica) |
+| Radius | 12 / 20 / 24 px | Inputy / karty / modale zgodne z aktualnym telemedi.com/pl |
 
 Tokeny jako zmienne CSS w `index.css`, zmapowane na kolory shadcn (`primary`, `accent`…).
 
-**Layout:** sidebar `#19301E` z logo Telemedi i pozycjami Skierowania, Pracownicy, Czynniki narażenia, Szablony, Użytkownicy. Topbar z nazwą firmy, przyciskiem **„+ Wystaw skierowanie”** i domyślnym użytkownikiem (np. „Katarzyna Zielińska, Koordynator HR”, bez menu i przełączania).
+**Layout:** jasny, zaokrąglony sidebar z logo Telemedi i pozycjami Skierowania, Pracownicy, Czynniki narażenia, Szablony, Użytkownicy. Pływający topbar z nazwą firmy, przyciskiem **„+ Wystaw skierowanie”** i domyślnym użytkownikiem (np. „Katarzyna Zielińska, Koordynator HR”, bez menu i przełączania).
 
 ---
 
@@ -298,7 +298,7 @@ Skierowanie przechowuje **kopię** pracownika i czynników, więc późniejsza e
 | **3. Czynniki narażenia** | Select „Szablon” + checkboxy w 5 kategoriach (zawsze widocznych) + opis warunków pracy | Wybór szablonu zaznacza jego czynniki, potem można je zmieniać. Licznik „Łączna liczba czynników: N” |
 | **4. Termin** | ⭐ **Termin dostarczenia orzeczenia\*** (datepicker, wyróżnione pole), miejscowość badania\* (domyślnie miasto pracownika), uwagi dla call center | Termin nie w przeszłości |
 
-- Przycisk **„Wygeneruj skierowanie”**: walidacja, nadanie numeru, zapis ze statusem „Wystawione”, przejście na listę, otwarcie podglądu PDF i toast „Skierowanie wystawione”.
+- Przycisk **„Wystaw skierowanie”**: walidacja, nadanie numeru, zapis ze statusem „Wystawione”, przejście na listę, otwarcie podglądu PDF i toast „Skierowanie zostało wystawione”.
 
 ### 8.5 Lista skierowań (tylko odczyt)
 - **Tabela:** nr, pracownik, stanowisko, rodzaj badania, data wystawienia, termin orzeczenia, status (badge), akcja 👁 **Podgląd PDF**.
@@ -351,18 +351,20 @@ server/
   db.seed.json
   db.json                 # w .gitignore
 src/
-  app/                    # router, Layout (Sidebar, Topbar), QueryClientProvider
-  components/ui/          # shadcn/ui
-  components/             # StatusBadge, PageHeader, ConfirmDialog
+  App.tsx                 # composition i lazy routing
+  core/api/               # klient HTTP, jeden plik na endpoint
+  core/queries/           # hooki TanStack Query per endpoint, queryKeys, cacheUpdates
+  domain/                 # język domeny, typy i wspólne reguły
+  i18n/                   # locales/pl.ts, I18nProvider, useTranslation (tłumaczenia pobierane jak z API)
+  layout/                 # AppShell (Sidebar, Topbar)
+  ui/                     # atomic design: atoms / molecules / organisms
   features/
     employees/            # EmployeesPage, EmployeeDialog, xlsx.ts
-    factors/              # FactorsPage
+    exposure/             # FactorsPage i integralność katalogu
     templates/            # TemplatesPage, TemplateDialog
-    referrals/            # ReferralsPage, NewReferralPage, ReferralPdf.tsx, PdfPreviewDialog
+    referrals/            # lista, PDF oraz deep module Wystawienia skierowania
     users/                # UsersPage, AddUserDialog
-  api/                    # client.ts (fetch), hooks per zasób (TanStack Query)
-  domain/                 # types.ts, schemas.ts (zod), labels.ts (etykiety PL)
-  lib/                    # pesel.ts, referralNumber.ts, login.ts
+  lib/                    # formatowanie dat i generowanie loginu
   index.css               # tokeny brandu
 ```
 

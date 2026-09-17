@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-/** Lokalna data w formacie akceptowanym przez input[type=date]. */
 function localDate(offsetDays = 0) {
   const date = new Date();
   date.setDate(date.getDate() + offsetDays);
@@ -9,7 +8,6 @@ function localDate(offsetDays = 0) {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-/** Zlicza i zapamiętuje zapytania POST tworzące skierowanie. */
 function trackReferralRequests(page: import("@playwright/test").Page) {
   const payloads: Array<Record<string, unknown>> = [];
   page.on("request", (request) => {
@@ -31,7 +29,7 @@ test("pracownik HR może dodać pracownika i wystawić mu skierowanie", async ({
   await dialog.getByLabel("Nazwisko").fill("Testowa");
   await dialog
     .getByRole("textbox", { name: "PESEL", exact: true })
-    .fill("99010112345");
+    .fill("99010112342");
   await dialog.getByLabel("Ulica i numer").fill("ul. Testowa 10");
   await dialog.getByLabel("Kod pocztowy").fill("00-100");
   await dialog.getByLabel("Miejscowość").fill("Warszawa");
@@ -50,12 +48,10 @@ test("pracownik HR może dodać pracownika i wystawić mu skierowanie", async ({
     .getByLabel("Użyj szablonu")
     .selectOption({ label: "Prace biurowe" });
   await page.getByLabel("Termin dostarczenia orzeczenia").fill("2099-12-31");
-  await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
 
   await expect(page).toHaveURL(/\/skierowania$/);
-  await expect(page.getByRole("status")).toHaveText(
-    "Skierowanie zostało wystawione",
-  );
+  await expect(page.getByText("Skierowanie zostało wystawione", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("row").filter({ hasText: "Ewa Testowa" }),
   ).toContainText("Wystawione");
@@ -81,7 +77,7 @@ test("nie można wystawić skierowania z terminem dostarczenia orzeczenia w prze
   await page.goto("/skierowania/nowe?employeeId=e1");
   const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
   await deadline.fill("2000-01-01");
-  await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
 
   await expect(page).toHaveURL(/\/skierowania\/nowe\?employeeId=e1$/);
   await expect(page.getByRole("status")).toHaveText(
@@ -111,7 +107,7 @@ test("komunikat o przeszłym terminie jest wyróżniony jako błąd", async ({
   await page.goto("/skierowania/nowe?employeeId=e1");
 
   await page.getByLabel("Termin dostarczenia orzeczenia").fill(localDate(-30));
-  await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
 
   const toast = page.getByRole("status");
   await expect(toast).toHaveText(
@@ -128,12 +124,10 @@ test("można wystawić skierowanie z dzisiejszym terminem dostarczenia orzeczeni
 
   await page.goto("/skierowania/nowe?employeeId=e1");
   await page.getByLabel("Termin dostarczenia orzeczenia").fill(today);
-  await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
 
   await expect(page).toHaveURL(/\/skierowania$/);
-  await expect(page.getByRole("status")).toHaveText(
-    "Skierowanie zostało wystawione",
-  );
+  await expect(page.getByText("Skierowanie zostało wystawione", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /Podgląd · SK\// }),
   ).toBeVisible();
@@ -149,7 +143,7 @@ test("po poprawieniu przeszłego terminu błąd znika i skierowanie zostaje wyst
 
   await page.goto("/skierowania/nowe?employeeId=e2");
   const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
-  const issue = page.getByRole("button", { name: "Wygeneruj skierowanie" });
+  const issue = page.getByRole("button", { name: "Wystaw skierowanie", exact: true });
 
   await deadline.fill(localDate(-1));
   await issue.click();
@@ -204,10 +198,11 @@ test("pole terminu zgłasza przekroczenie dolnej granicy dla daty wcześniejszej
 }) => {
   await page.goto("/skierowania/nowe?employeeId=e1");
   const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
-  const rangeUnderflow = () =>
-    deadline.evaluate(
+  function rangeUnderflow() {
+    return deadline.evaluate(
       (element) => (element as HTMLInputElement).validity.rangeUnderflow,
     );
+  }
 
   await deadline.fill(localDate(-1));
   // Ta sama reguła, której używa kalendarz przeglądarki do wyszarzenia dat przed `min`.
@@ -229,7 +224,7 @@ test("pusty termin nie pokazuje komunikatu o dacie przeszłej i nie wysyła skie
   const deadline = page.getByLabel("Termin dostarczenia orzeczenia");
   await expect(deadline).toHaveValue("");
 
-  await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
 
   await expect(page).toHaveURL(/\/skierowania\/nowe\?employeeId=e1$/);
   await expect(deadline).toHaveAttribute("aria-invalid", "false");
@@ -254,7 +249,7 @@ test(
     await expect(deadline).toHaveAttribute("aria-invalid", "false");
 
     await page.clock.fastForward("00:30:00");
-    await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+    await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
 
     await expect(page.getByRole("status")).toHaveText(
       "Termin dostarczenia orzeczenia nie może być datą przeszłą",

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import * as XLSX from 'xlsx'
+import { pl } from '@/i18n/locales/pl'
 import { parseEmployees } from './xlsx'
 
 function workbookFile(rows: string[][]): File {
@@ -15,26 +16,26 @@ describe('import pracowników z XLSX', () => {
       ['instrukcje'],
       ['Imię', 'Nazwisko', 'PESEL'],
       ['Jan', 'Przykładowy', '90010112349', '', '', '', 'ul. Testowa 1', '00-001', 'Warszawa', '500 000 000', 'jan@example.com', 'Specjalista'],
-      ['Ewa', 'Testowa', '99010112345', '', '', '', 'ul. Nowa 2', '00-002', 'Warszawa', '', '', 'Księgowa'],
+      ['Ewa', 'Testowa', '99010112342', '', '', '', 'ul. Nowa 2', '00-002', 'Warszawa', '', '', 'Księgowa'],
     ])
 
-    const result = await parseEmployees(file)
+    const result = await parseEmployees(file, pl.employees.xlsx)
 
-    expect(result.errors).toEqual([])
+    expect(result.issues).toEqual([])
     expect(result.valid).toHaveLength(1)
-    expect(result.valid[0]).toMatchObject({ firstName: 'Ewa', lastName: 'Testowa', pesel: '99010112345' })
+    expect(result.valid[0]).toMatchObject({ firstName: 'Ewa', lastName: 'Testowa', pesel: '99010112342' })
   })
 
   it('zgłasza wiersz bez wymaganych danych zamiast go importować', async () => {
     const file = workbookFile([
       ['instrukcje'],
       ['nagłówki'],
-      ['Ewa', 'Testowa', '99010112345'],
+      ['Ewa', 'Testowa', '99010112342'],
     ])
 
-    const result = await parseEmployees(file)
+    const result = await parseEmployees(file, pl.employees.xlsx)
 
     expect(result.valid).toEqual([])
-    expect(result.errors).toEqual(['wiersz 3: brak wymaganych danych'])
+    expect(result.issues).toEqual([{ row: 3, reasonKey: 'validation.employee.streetRequired' }])
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { datePL, nextLogin, nextReferralNumber } from './utils'
+import { datePL, nextLogin } from './utils'
 
 describe('generowanie loginu użytkownika HR', () => {
   it('usuwa polskie znaki i zbędne odstępy w imieniu oraz nazwisku', () => {
@@ -17,20 +17,6 @@ describe('formatowanie daty', () => {
   })
 
   it('nie rzuca wyjątku dla niepoprawnej daty', () => {
-    expect(datePL('10000-01-01T12:00:00')).toBe('—')
-  })
-})
-
-describe('numeracja skierowań', () => {
-  it('wybiera kolejny numer po najwyższym istniejącym numerze', () => {
-    expect(nextReferralNumber([
-      'SK/2026/09/0002',
-      'SK/2026/09/0012',
-      'SK/2026/09/0008',
-    ])).toMatch(/\/0013$/)
-  })
-
-  it('zaczyna numerację od 0001 dla pustej listy', () => {
-    expect(nextReferralNumber([])).toMatch(/\/0001$/)
+    expect(datePL('10000-01-01T12:00:00')).toBeUndefined()
   })
 })
