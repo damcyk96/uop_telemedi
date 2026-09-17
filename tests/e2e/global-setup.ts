@@ -6,5 +6,7 @@ const testDatabase = resolve(process.cwd(), 'server/db.test.json')
 
 export default async function globalSetup() {
   copyFileSync(seed, testDatabase)
-  return async () => rmSync(testDatabase, { force: true })
+  return async () => {
+    rmSync(testDatabase, { force: true })
+  }
 }

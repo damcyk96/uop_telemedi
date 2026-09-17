@@ -9,3 +9,4 @@ vite.config.d.ts
 tsconfig.node.tsbuildinfo
 tsconfig.app.tsbuildinfo
 .DS_Store
+.claude/settings.local.json

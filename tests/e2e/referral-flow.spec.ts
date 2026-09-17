@@ -11,7 +11,7 @@ test("pracownik HR może dodać pracownika i wystawić mu skierowanie", async ({
   await dialog.getByLabel("Nazwisko").fill("Testowa");
   await dialog
     .getByRole("textbox", { name: "PESEL", exact: true })
-    .fill("99010112345");
+    .fill("99010112342");
   await dialog.getByLabel("Ulica i numer").fill("ul. Testowa 10");
   await dialog.getByLabel("Kod pocztowy").fill("00-100");
   await dialog.getByLabel("Miejscowość").fill("Warszawa");
@@ -30,12 +30,10 @@ test("pracownik HR może dodać pracownika i wystawić mu skierowanie", async ({
     .getByLabel("Użyj szablonu")
     .selectOption({ label: "Prace biurowe" });
   await page.getByLabel("Termin dostarczenia orzeczenia").fill("2099-12-31");
-  await page.getByRole("button", { name: "Wygeneruj skierowanie" }).click();
+  await page.getByRole("button", { name: "Wystaw skierowanie", exact: true }).click();
 
   await expect(page).toHaveURL(/\/skierowania$/);
-  await expect(page.getByRole("status")).toHaveText(
-    "Skierowanie zostało wystawione",
-  );
+  await expect(page.getByText("Skierowanie zostało wystawione", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("row").filter({ hasText: "Ewa Testowa" }),
   ).toContainText("Wystawione");
