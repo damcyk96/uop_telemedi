@@ -99,6 +99,7 @@ Testy Vitest obejmują:
 
 - generowanie i rozwiązywanie kolizji loginów,
 - numerację skierowań,
+- odrzucanie terminu dostarczenia orzeczenia z przeszłości,
 - pomijanie przykładowego wiersza XLSX,
 - raportowanie niepełnych wierszy importu.
 
@@ -108,6 +109,7 @@ Testy Playwright obejmują:
 - pełny przepływ dodania pracownika,
 - przejście z pracownika do nowego skierowania,
 - zastosowanie szablonu i wystawienie skierowania,
+- blokadę wystawienia skierowania z przeszłym terminem oraz komunikat toast,
 - potwierdzenie zapisu, obecność skierowania na liście i utworzenie podglądu PDF.
 
 E2E korzysta z osobnej bazy `server/db.test.json`. Jest ona tworzona z seedu przed testami i usuwana po ich zakończeniu, więc dane lokalnego demo pozostają nienaruszone.

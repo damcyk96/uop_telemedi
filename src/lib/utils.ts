@@ -1,5 +1,8 @@
 export const uid = () => crypto.randomUUID()
-export const datePL = (value: string) => new Intl.DateTimeFormat('pl-PL').format(new Date(value))
+export const datePL = (value: string) => {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('pl-PL').format(date)
+}
 export const normalizeLogin = (value: string) => value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ł/g, 'l').replace(/[^a-z0-9.]/g, '')
 export function nextLogin(firstName: string, lastName: string, existing: string[]) {
   const base = normalizeLogin(`${firstName}.${lastName}`); let login = base; let i = 2
