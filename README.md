@@ -93,6 +93,13 @@ Vite przekazuje zapytania z `/api` do lokalnego `json-server`.
 | `npm run test:e2e:ui` | Otwiera interaktywny interfejs Playwright       |
 | `npm run test:all`    | Uruchamia wszystkie testy jednostkowe i E2E     |
 
+## Pull requesty
+
+Każdy pull request musi zawierać:
+
+- odwołanie do issue w opisie (`Closes #123`, `Fixes #123` lub `Resolves #123`) — w przeciwnym razie dostaje labelkę `missing issue`,
+- nagranie wideo lub screenshot zmiany (przeciągnij plik do opisu lub komentarza, albo wklej link do Loom / YouTube) — w przeciwnym razie dostaje labelkę `video or screenshot is missing`.
+
 ## Testy
 
 Testy Vitest obejmują:
