@@ -21,6 +21,10 @@ Closes #<issue-number>
 - [ ] `npm run test:e2e`
 - [ ] Documentation or configuration reviewed manually
 
+## Screenshots or demo
+
+<!-- Required: drag & drop a video or screenshot here, or link Loom / YouTube / a media file. Without it the PR gets the "video or screenshot is missing" label. -->
+
 ## Notes
 
 <!-- Risks, dependencies, follow-up work, or actions required after merge. -->

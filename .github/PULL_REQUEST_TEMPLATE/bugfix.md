@@ -28,7 +28,8 @@ Fixes #<issue-number>
 
 ## Evidence
 
-<!-- Attach screenshots, recordings, or relevant output with sensitive information removed. -->
+<!-- Required: drag & drop a video or screenshot here, or link Loom / YouTube / a media file. Without it the PR gets the "video or screenshot is missing" label. -->
+<!-- Remove sensitive information before attaching. -->
 
 ## Notes
 

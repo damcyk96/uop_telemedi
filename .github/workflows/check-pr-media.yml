@@ -1,0 +1,124 @@
+name: Check video or screenshot in PR
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review, labeled, unlabeled]
+  issue_comment:
+    types: [created, edited, deleted]
+  pull_request_review_comment:
+    types: [created, edited, deleted]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  # Comment events report to a different commit than pull_request events. Keep
+  # their groups separate so one cannot cancel the other's check.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.issue.number || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-pr-media:
+    # `issue_comment` also fires for plain issues, which have no media check.
+    if: github.event_name != 'issue_comment' || github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number || context.payload.issue?.number;
+
+            if (!prNumber) {
+              console.log("No PR context");
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const missingMediaLabel = 'video or screenshot is missing';
+            const dependencyLabel = 'dependencies';
+
+            const pr = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const labelNames = (pr.data.labels || []).map((label) => label.name);
+
+            const removeMissingMediaLabel = async () => {
+              if (!labelNames.includes(missingMediaLabel)) {
+                return;
+              }
+
+              try {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                  name: missingMediaLabel
+                });
+                console.log(`Removed "${missingMediaLabel}" label`);
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            };
+
+            if (labelNames.includes(dependencyLabel) || pr.data.user?.login === 'dependabot[bot]') {
+              await removeMissingMediaLabel();
+              console.log("Skipping media check for dependency or Dependabot PR");
+              return;
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+
+            const reviewComments = await github.paginate(github.rest.pulls.listReviewComments, {
+              owner,
+              repo,
+              pull_number: prNumber,
+              per_page: 100
+            });
+
+            const text = [pr.data.body || "", ...comments, ...reviewComments]
+              .map((item) => (typeof item === 'string' ? item : item.body || ""))
+              .join("\n")
+              // Ignore HTML comments so template hints never count as media.
+              .replace(/<!--[\s\S]*?-->/g, "");
+
+            const mediaPatterns = [
+              // Files dragged into GitHub (images and videos)
+              /https:\/\/github\.com\/user-attachments\/(assets|files)\/[\w-]+/i,
+              /https:\/\/(private-)?user-images\.githubusercontent\.com\/\S+/i,
+              // Markdown images and HTML <img> / <video> tags
+              /!\[[^\]]*\]\([^)\s]+[^)]*\)/,
+              /<(img|video)\b[^>]*\bsrc=["']?[^"'\s>]+/i,
+              // Video hosting
+              /https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/i,
+              /https?:\/\/(www\.)?loom\.com\/share\/[\w-]+/i,
+              // Direct links to media files
+              /https?:\/\/\S+\.(mp4|mov|webm|gif|png|jpe?g|webp)(\?\S*)?(\s|\)|$)/i
+            ];
+
+            const hasMedia = mediaPatterns.some((pattern) => pattern.test(text));
+
+            if (hasMedia) {
+              await removeMissingMediaLabel();
+              console.log("Video or screenshot detected in PR description or comments");
+              return;
+            }
+
+            if (!labelNames.includes(missingMediaLabel)) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: prNumber,
+                labels: [missingMediaLabel]
+              });
+            }
+
+            core.setFailed(
+              'PR must include a video or screenshot (drag & drop into the description or a comment, or link Loom / YouTube / a media file).'
+            );
